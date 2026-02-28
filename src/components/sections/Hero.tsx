@@ -221,9 +221,9 @@ export default function Hero() {
           className="absolute inset-0 z-[1]"
           style={{ filter: bgFilter, opacity: bgOpacity, willChange: "opacity, filter" }}
         >
-          {/* All tiles drift sideways together in a slow pendulum */}
+          {/* Desktop: scattered parallax tiles */}
           <motion.div
-            className="absolute inset-0"
+            className="absolute inset-0 hidden md:block"
             animate={{ x: ["0px", "-35px", "0px"] }}
             transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
           >
@@ -231,6 +231,42 @@ export default function Hero() {
               <ImageTile key={i} tile={tile} mouseX={mouseX} mouseY={mouseY} />
             ))}
           </motion.div>
+
+          {/* Mobile: scattered images spread across the full viewport */}
+          {(() => {
+            const tiles = GALLERY.slice(0, 6)
+            // Each tile: [left%, top%, width vw, height vw, rotation deg]
+            const layout: [string, string, string, string, number][] = [
+              ["2%",  "2%",  "30vw", "38vw", -1.5],   // top-left
+              ["58%", "0%",  "40vw", "30vw",  1.2],   // top-right
+              ["0%",  "42%", "32vw", "22vw", -2.0],   // mid-left
+              ["60%", "38%", "38vw", "24vw",  1.5],   // mid-right
+              ["4%",  "72%", "28vw", "26vw", -1.0],   // bottom-left
+              ["54%", "68%", "42vw", "30vw",  0.8],   // bottom-right
+            ]
+            return (
+              <div className="absolute inset-0 md:hidden">
+                {tiles.map((tile, i) => {
+                  const [l, t, w, h, rot] = layout[i]
+                  return (
+                    <div
+                      key={i}
+                      className="absolute overflow-hidden"
+                      style={{
+                        left: l,
+                        top: t,
+                        width: w,
+                        height: h,
+                        transform: `rotate(${rot}deg)`,
+                      }}
+                    >
+                      <Image src={tile.src} fill className="object-cover" alt="" sizes="45vw" />
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })()}
 
           {/* Dark centre overlay so text reads clearly over scattered photos */}
           <div

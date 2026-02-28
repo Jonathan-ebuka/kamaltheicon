@@ -578,11 +578,40 @@ export default function Booking() {
     setForm((prev) => ({ ...prev, contactMethod: method, contactValue: "" }))
   }
 
-  function goTo(next: number) {
+  function goTo(next: number, pushHistory = true) {
     setDirection(next > step ? 1 : -1)
     setStep(next)
+    if (pushHistory && next > 1) {
+      window.history.pushState({ bookingStep: next }, "")
+    }
     setTimeout(() => formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50)
   }
+
+  // Handle browser back button / swipe-back — navigate between form steps
+  useEffect(() => {
+    function onPopState(e: PopStateEvent) {
+      const prevStep = e.state?.bookingStep as number | undefined
+      if (prevStep && prevStep >= 1 && prevStep <= 4) {
+        setDirection(-1)
+        setStep(prevStep)
+        setTimeout(() => formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50)
+      } else if (step > 1) {
+        // No saved state — go back one step and push a replacement so we
+        // don't leave the page on the next back press from step 1
+        setDirection(-1)
+        setStep((s) => {
+          const target = Math.max(1, s - 1)
+          if (target > 1) {
+            window.history.pushState({ bookingStep: target }, "")
+          }
+          return target
+        })
+        setTimeout(() => formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50)
+      }
+    }
+    window.addEventListener("popstate", onPopState)
+    return () => window.removeEventListener("popstate", onPopState)
+  }, [step])
 
   const advance = () => goTo(step + 1)
 
@@ -712,7 +741,8 @@ export default function Booking() {
                       <input type="text" value={form.instagram} onChange={(e) => update("instagram", e.target.value)} placeholder="@yourhandle" className={baseInput} />
                     </Field>
                   </div>
-                  <div className="flex justify-end">
+                  <div className="flex items-center justify-center gap-4">
+                    <PrimaryButton label="← Back" onClick={() => goTo(step - 1)} />
                     <PrimaryButton label="Continue →" onClick={advance} disabled={!form.name.trim() || !form.email.trim()} />
                   </div>
                 </motion.div>
@@ -788,7 +818,8 @@ export default function Booking() {
 
                   </div>
 
-                  <div className="flex justify-end">
+                  <div className="flex items-center justify-center gap-4">
+                    <PrimaryButton label="← Back" onClick={() => goTo(step - 1)} />
                     <PrimaryButton label="Continue →" onClick={advance} disabled={!step3CanContinue} />
                   </div>
                 </motion.div>
@@ -841,8 +872,9 @@ export default function Booking() {
                       </div>
                     </motion.div>
 
-                    <div className="mt-10 flex justify-end">
+                    <div className="mt-10 flex flex-col items-center gap-4">
                       <PrimaryButton type="submit" label="Submit Creative Request" disabled={!form.description.trim()} wide />
+                      <PrimaryButton label="← Back" onClick={() => goTo(step - 1)} />
                     </div>
                   </div>
                 </motion.div>

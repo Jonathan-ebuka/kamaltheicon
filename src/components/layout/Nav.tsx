@@ -165,27 +165,35 @@ export default function Nav() {
       <header className="fixed top-0 left-0 right-0 z-50 h-[76px]">
 
         {/* Glass background — fades in on scroll, disappears when menu opens */}
-        <motion.div
-          aria-hidden
-          className="absolute inset-0 pointer-events-none"
-          animate={{ opacity: scrolled && !menuOpen ? 1 : 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          style={{
-            backdropFilter:       "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            // Slightly elevated from pure black in dark mode so the nav
-            // is visually distinct from the #0A0A0A page background
-            backgroundColor: isDark
-              ? "rgba(18,18,18,0.94)"
-              : "rgba(248,247,244,0.94)",
-            borderBottom: `1px solid ${
-              isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"
-            }`,
-            boxShadow: isDark
-              ? "0 8px 40px rgba(0,0,0,0.55)"
-              : "0 4px 24px rgba(0,0,0,0.07)",
-          }}
-        />
+        {(() => {
+          const showGlass = scrolled && !menuOpen;
+          return (
+            <motion.div
+              aria-hidden
+              className="absolute inset-0 pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: showGlass ? 1 : 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              style={{
+                backdropFilter:       showGlass ? "blur(20px)" : "none",
+                WebkitBackdropFilter: showGlass ? "blur(20px)" : "none",
+                backgroundColor: showGlass
+                  ? isDark
+                    ? "rgba(18,18,18,0.94)"
+                    : "rgba(248,247,244,0.94)"
+                  : "transparent",
+                borderBottom: showGlass
+                  ? `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`
+                  : "none",
+                boxShadow: showGlass
+                  ? isDark
+                    ? "0 8px 40px rgba(0,0,0,0.55)"
+                    : "0 4px 24px rgba(0,0,0,0.07)"
+                  : "none",
+              }}
+            />
+          );
+        })()}
 
         <div className="relative z-10 h-full max-w-[1440px] mx-auto px-6 md:px-12 flex items-center justify-between">
 

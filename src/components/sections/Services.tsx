@@ -5,6 +5,7 @@ import Image from "next/image"
 import {
   motion,
   useScroll,
+  useSpring,
   useTransform,
   type MotionValue,
 } from "framer-motion"
@@ -81,6 +82,9 @@ function ServiceCard({
         scale,
         zIndex: index + 1,
         backgroundColor: service.accent,
+        translateZ: 0,
+        backfaceVisibility: "hidden",
+        WebkitBackfaceVisibility: "hidden",
       }}
     >
       {/* ── Left panel — service info ────────────────────────────────── */}
@@ -138,7 +142,7 @@ function ServiceCard({
       </div>
 
       {/* ── Right panel — image placeholder ──────────────────────────── */}
-      <div className='flex-1 relative overflow-hidden min-h-[40vh] md:min-h-0'>
+      <div className='flex-1 relative overflow-hidden min-h-[40vh] md:min-h-0' style={{ transform: "translateZ(0)" }}>
         <Image
           src={service.image}
           fill
@@ -160,9 +164,17 @@ export default function Services() {
   // With 4 cards that's 3 × 100vh = 300vh of scroll, 100vh per transition.
   const stackRef = useRef<HTMLDivElement>(null)
 
-  const { scrollYProgress } = useScroll({
+  const { scrollYProgress: rawProgress } = useScroll({
     target: stackRef,
     offset: ["start start", "end end"],
+  })
+
+  // Smooth the scroll progress through a spring to eliminate jank,
+  // especially visible on Safari where scroll events fire less evenly.
+  const scrollYProgress = useSpring(rawProgress, {
+    stiffness: 300,
+    damping: 40,
+    mass: 0.5,
   })
 
   return (
